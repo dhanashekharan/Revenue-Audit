@@ -5,8 +5,8 @@
   "AZURE_AD_CONFIG": {
     "enabled": false,
     "provider": "azure_ad",
-    "tenant_id": "<APOLLO_AZURE_TENANT_ID>",
-    "client_id": "<APOLLO_APP_CLIENT_ID>",
+    "tenant_id": "1360b829-3785-4d96-ae6d-0111bf154806",
+    "client_id": "a58f7538-0678-483b-a92c-2fb78868b35e",
     "client_secret": "<OPTIONAL_CLIENT_SECRET>",
     "redirect_uri": "https://<HOST>/index.html",
     "saml_entity_id": "https://<HOST>/saml/metadata",
