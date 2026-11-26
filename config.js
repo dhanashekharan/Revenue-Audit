@@ -72,7 +72,7 @@ window.APOLLO_CONFIG = {
           "role": "Approver"
         },
         {
-          "email": "auditor.intl@apollohospitals.com",
+          "email": "rashmi_bihani@apollohospitals.com",
           "name": "International Patient Cash Hub Auditor",
           "unit": "international",
           "role": "Auditor"
