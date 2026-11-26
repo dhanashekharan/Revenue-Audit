@@ -29,11 +29,11 @@ config = {
         "enabled": False,
         "tenant_id": "1360b829-3785-4d96-ae6d-0111bf154806",
         "client_id": "a58f7538-0678-483b-a92c-2fb78868b35e",
-        "redirect_uri": "http://localhost:8500/index.html",
-        "saml_entity_id": "https://apollo-revenue-audit.local/saml/metadata",
-        "saml_acs_url": "http://localhost:8500/api/saml/acs",
-        "default_unit": "excelcare",
-        "default_role": "Auditor",
+        "redirect_uri": "https://revenue-audit.apollohospitals.com/index.html",
+        "saml_entity_id": "https://revenue-audit.apollohospitals.com/saml/metadata",
+        "saml_acs_url": "https://revenue-audit.apollohospitals.com/api/saml/acs",
+        "default_unit": "all",
+        "default_role": "Administrator",
         "allowed_domain": "apollohospitals.com",
         "role_and_unit_mappings": {}
     }
@@ -240,8 +240,8 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
                 "redirect_uri": azure_cfg.get("redirect_uri", ""),
                 "saml_entity_id": azure_cfg.get("saml_entity_id", ""),
                 "saml_acs_url": azure_cfg.get("saml_acs_url", ""),
-                "default_unit": azure_cfg.get("default_unit", "excelcare"),
-                "default_role": azure_cfg.get("default_role", "Auditor"),
+                "default_unit": azure_cfg.get("default_unit", "all"),
+                "default_role": azure_cfg.get("default_role", "Administrator"),
                 "allowed_domain": azure_cfg.get("allowed_domain", "apollohospitals.com"),
                 "role_and_unit_mappings": azure_cfg.get("role_and_unit_mappings", {})
             }
@@ -427,10 +427,10 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
                 # Handle incoming SAML 2.0 assertion from Microsoft Azure AD / Entra ID
                 saml_response_str = ""
                 azure_cfg = config.get("AZURE_AD_CONFIG", {})
-                default_unit = azure_cfg.get("default_unit", "excelcare")
-                default_role = azure_cfg.get("default_role", "Auditor")
-                user_email = "apollo.auditor@apollohospitals.com"
-                user_name = "Apollo Enterprise Auditor"
+                default_unit = azure_cfg.get("default_unit", "all")
+                default_role = azure_cfg.get("default_role", "Administrator")
+                user_email = "corporate.admin@apollohospitals.com"
+                user_name = "Apollo Corporate Administrator"
                 user_role = default_role
                 user_unit = default_unit
                 
@@ -461,13 +461,18 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
                     except Exception as e:
                         print(f"Error decoding SAML XML: {e}")
 
-                # Dynamically resolve role and unit from role_and_unit_mappings in config
+                # Dynamically resolve role and unit from role_and_unit_mappings in config (STRICT EXACT MATCH)
                 mappings = azure_cfg.get("role_and_unit_mappings", {})
                 user_dir = mappings.get("user_directory", [])
                 clean_email = user_email.lower().strip()
+                email_prefix = clean_email.split('@')[0] if '@' in clean_email else clean_email
                 matched = False
                 for u in user_dir:
-                    if u.get("email", "").lower().strip() == clean_email:
+                    u_email = u.get("email", "").lower().strip()
+                    u_prefix = u_email.split('@')[0] if '@' in u_email else u_email
+
+                    # Strict exact match on email address or exact username prefix
+                    if clean_email == u_email or (email_prefix and email_prefix == u_prefix):
                         user_unit = u.get("unit", user_unit)
                         user_role = u.get("role", user_role)
                         if u.get("name"):
@@ -476,15 +481,24 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
                         break
                 
                 if not matched:
-                    # Check email domain patterns
-                    patterns = mappings.get("email_domain_patterns", {})
-                    for pattern, meta in patterns.items():
-                        keyword = pattern.strip("*").lower()
-                        if keyword and keyword in clean_email:
-                            user_unit = meta.get("unit", user_unit)
-                            user_role = meta.get("role", user_role)
-                            matched = True
-                            break
+                    # Check email domain patterns (supports both list and dict formats)
+                    patterns = mappings.get("email_domain_patterns", [])
+                    if isinstance(patterns, list):
+                        for item in patterns:
+                            keyword = item.get("pattern", "").strip("*").lower()
+                            if keyword and (keyword in clean_email or keyword in email_prefix):
+                                user_unit = item.get("unit", user_unit)
+                                user_role = item.get("role", user_role)
+                                matched = True
+                                break
+                    elif isinstance(patterns, dict):
+                        for pattern, meta in patterns.items():
+                            keyword = pattern.strip("*").lower()
+                            if keyword and (keyword in clean_email or keyword in email_prefix):
+                                user_unit = meta.get("unit", user_unit)
+                                user_role = meta.get("role", user_role)
+                                matched = True
+                                break
 
                 # Redirect browser back to main application with verified SSO token
                 self.send_response(302)
