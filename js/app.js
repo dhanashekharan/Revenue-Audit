@@ -12606,167 +12606,172 @@
     // =========================================================================
     // APOLLO ENTERPRISE AZURE AD / MICROSOFT ENTRA ID SINGLE SIGN-ON (SSO) MODULE
     // =========================================================================
-    const DEFAULT_APOLLO_AZURE_CONFIG = {
-        enabled: true,
-        provider: "azure_ad",
-        tenant_id: "1360b829-3785-4d96-ae6d-0111bf154806",
-        client_id: "a58f7538-0678-483b-a92c-2fb78868b35e",
-        redirect_uri: "https://revenue-audit.apollohospitals.com/index.html",
-        saml_entity_id: "https://revenue-audit.apollohospitals.com/saml/metadata",
-        saml_acs_url: "https://revenue-audit.apollohospitals.com/api/saml/acs",
-        allowed_domain: "apollohospitals.com",
-        default_unit: "none",
-        default_role: "none",
-        role_and_unit_mappings: {
-            user_directory: [
-                {
-                    "email": "933154@apollohospitals.com",
-                    "name": "Corporate Head Office Administrator",
-                    "unit": "all",
-                    "role": "Administrator"
-                },
-                {
-                    "email": "933054@apollohospitals.com",
-                    "name": "Corporate Head Office Administrator",
-                    "unit": "all",
-                    "role": "Administrator"
-                },
-                {
-                    "email": "corporate.admin@apollohospitals.com",
-                    "name": "Corporate Head Office Administrator",
-                    "unit": "all",
-                    "role": "Administrator"
-                },
-                {
-                    "email": "siddhant_surana@apollohospitals.com",
-                    "name": "Siddhant Surana",
-                    "unit": "excelcare",
-                    "role": "Auditor"
-                },
-                {
-                    "email": "approver.excelcare@apollohospitals.com",
-                    "name": "Guwahati Excelcare Billing Approver",
-                    "unit": "excelcare",
-                    "role": "Approver"
-                },
-                {
-                    "email": "viewer.excelcare@apollohospitals.com",
-                    "name": "Guwahati Reviewer",
-                    "unit": "excelcare",
-                    "role": "Viewer"
-                },
-                {
-                    "email": "auditor.kolkata@apollohospitals.com",
-                    "name": "Kolkata Multispeciality Lead Auditor",
-                    "unit": "kolkata",
-                    "role": "Auditor"
-                },
-                {
-                    "email": "approver.kolkata@apollohospitals.com",
-                    "name": "Kolkata Finance Approver",
-                    "unit": "kolkata",
-                    "role": "Approver"
-                },
-                {
-                    "email": "auditor.intl@apollohospitals.com",
-                    "name": "International Patient Cash Hub Auditor",
-                    "unit": "international",
-                    "role": "Auditor"
-                },
-                {
-                    "email": "approver.intl@apollohospitals.com",
-                    "name": "International Patient Hub Approver",
-                    "unit": "international",
-                    "role": "Approver"
-                },
-                {
-                    "email": "era_raautomation@apollohospitals.com",
-                    "name": "Chennai Main Hospital Auditor",
-                    "unit": "chennai_greams",
-                    "role": "Auditor"
-                },
-                {
-                    "email": "auditor.chennai@apollohospitals.com",
-                    "name": "Chennai Main Hospital Auditor",
-                    "unit": "chennai_greams",
-                    "role": "Auditor"
-                },
-                {
-                    "email": "auditor.hyderabad@apollohospitals.com",
-                    "name": "Hyderabad Jubilee Hills Auditor",
-                    "unit": "hyd_jubilee",
-                    "role": "Auditor"
-                },
-                {
-                    "email": "auditor.delhi@apollohospitals.com",
-                    "name": "Delhi Indraprastha Unit Auditor",
-                    "unit": "delhi_indraprastha",
-                    "role": "Auditor"
-                },
-                {
-                    "email": "auditor.bangalore@apollohospitals.com",
-                    "name": "Bangalore Bannerghatta Unit Auditor",
-                    "unit": "blr_bannerghatta",
-                    "role": "Auditor"
-                },
-                {
-                    "email": "auditor.bhubaneswar@apollohospitals.com",
-                    "name": "Bhubaneswar Unit Auditor",
-                    "unit": "bhubaneswar",
-                    "role": "Auditor"
-                }
-            ],
-            group_mappings: {
-                "Apollo-Corporate-Admins": {
-                    "unit": "all",
-                    "role": "Administrator"
-                },
-                "Apollo-Excelcare-Auditors": {
-                    "unit": "excelcare",
-                    "role": "Auditor"
-                },
-                "Apollo-Excelcare-Approvers": {
-                    "unit": "excelcare",
-                    "role": "Approver"
-                },
-                "Apollo-Kolkata-Auditors": {
-                    "unit": "kolkata",
-                    "role": "Auditor"
-                },
-                "Apollo-Kolkata-Approvers": {
-                    "unit": "kolkata",
-                    "role": "Approver"
-                },
-                "Apollo-Intl-Auditors": {
-                    "unit": "international",
-                    "role": "Auditor"
-                },
-                "Apollo-Intl-Approvers": {
-                    "unit": "international",
-                    "role": "Approver"
-                },
-                "Apollo-Chennai-Auditors": {
-                    "unit": "chennai_greams",
-                    "role": "Auditor"
-                },
-                "Apollo-Hyderabad-Auditors": {
-                    "unit": "hyd_jubilee",
-                    "role": "Auditor"
-                },
-                "Apollo-Delhi-Auditors": {
-                    "unit": "delhi_indraprastha",
-                    "role": "Auditor"
-                },
-                "Apollo-Bangalore-Auditors": {
-                    "unit": "blr_bannerghatta",
-                    "role": "Auditor"
-                }
+    const DEFAULT_APOLLO_AZURE_CONFIG = (window.APOLLO_CONFIG && window.APOLLO_CONFIG.AZURE_AD_CONFIG) 
+    ? window.APOLLO_CONFIG.AZURE_AD_CONFIG 
+    : {
+    "enabled": true,
+    "provider": "azure_ad",
+    "tenant_id": "1360b829-3785-4d96-ae6d-0111bf154806",
+    "client_id": "a58f7538-0678-483b-a92c-2fb78868b35e",
+    "redirect_uri": "https://revenue-audit.apollohospitals.com/index.html",
+    "saml_entity_id": "https://revenue-audit.apollohospitals.com/saml/metadata",
+    "saml_acs_url": "https://revenue-audit.apollohospitals.com/api/saml/acs",
+    "allowed_domain": "apollohospitals.com",
+    "default_unit": "none",
+    "default_role": "none",
+    "role_and_unit_mappings": {
+        "user_directory": [
+            {
+                "email": "933154@apollohospitals.com",
+                "name": "Corporate Head Office Administrator",
+                "unit": "all",
+                "role": "Administrator"
             },
-            email_domain_patterns: []
-        }
-    };
+            {
+                "email": "933054@apollohospitals.com",
+                "name": "Corporate Head Office Administrator",
+                "unit": "all",
+                "role": "Administrator"
+            },
+            {
+                "email": "corporate.admin@apollohospitals.com",
+                "name": "Corporate Head Office Administrator",
+                "unit": "all",
+                "role": "Administrator"
+            },
+            {
+                "email": "siddhant_surana@apollohospitals.com",
+                "name": "Siddhant Surana",
+                "unit": "excelcare",
+                "role": "Auditor"
+            },
+            {
+                "email": "approver.excelcare@apollohospitals.com",
+                "name": "Guwahati Excelcare Billing Approver",
+                "unit": "excelcare",
+                "role": "Approver"
+            },
+            {
+                "email": "viewer.excelcare@apollohospitals.com",
+                "name": "Guwahati Reviewer",
+                "unit": "excelcare",
+                "role": "Viewer"
+            },
+            {
+                "email": "auditor.kolkata@apollohospitals.com",
+                "name": "Kolkata Multispeciality Lead Auditor",
+                "unit": "kolkata",
+                "role": "Auditor"
+            },
+            {
+                "email": "approver.kolkata@apollohospitals.com",
+                "name": "Kolkata Finance Approver",
+                "unit": "kolkata",
+                "role": "Approver"
+            },
+            {
+                "email": "auditor.intl@apollohospitals.com",
+                "name": "International Patient Cash Hub Auditor",
+                "unit": "international",
+                "role": "Auditor"
+            },
+            {
+                "email": "approver.intl@apollohospitals.com",
+                "name": "International Patient Hub Approver",
+                "unit": "international",
+                "role": "Approver"
+            },
+            {
+                "email": "era_raautomation@apollohospitals.com",
+                "name": "Chennai Main Hospital Auditor",
+                "unit": "chennai_greams",
+                "role": "Auditor"
+            },
+            {
+                "email": "auditor.chennai@apollohospitals.com",
+                "name": "Chennai Main Hospital Auditor",
+                "unit": "chennai_greams",
+                "role": "Auditor"
+            },
+            {
+                "email": "auditor.hyderabad@apollohospitals.com",
+                "name": "Hyderabad Jubilee Hills Auditor",
+                "unit": "hyd_jubilee",
+                "role": "Auditor"
+            },
+            {
+                "email": "auditor.delhi@apollohospitals.com",
+                "name": "Delhi Indraprastha Unit Auditor",
+                "unit": "delhi_indraprastha",
+                "role": "Auditor"
+            },
+            {
+                "email": "auditor.bangalore@apollohospitals.com",
+                "name": "Bangalore Bannerghatta Unit Auditor",
+                "unit": "blr_bannerghatta",
+                "role": "Auditor"
+            },
+            {
+                "email": "auditor.bhubaneswar@apollohospitals.com",
+                "name": "Bhubaneswar Unit Auditor",
+                "unit": "bhubaneswar",
+                "role": "Auditor"
+            }
+        ],
+        "group_mappings": {
+            "Apollo-Corporate-Admins": {
+                "unit": "all",
+                "role": "Administrator"
+            },
+            "Apollo-Excelcare-Auditors": {
+                "unit": "excelcare",
+                "role": "Auditor"
+            },
+            "Apollo-Excelcare-Approvers": {
+                "unit": "excelcare",
+                "role": "Approver"
+            },
+            "Apollo-Kolkata-Auditors": {
+                "unit": "kolkata",
+                "role": "Auditor"
+            },
+            "Apollo-Kolkata-Approvers": {
+                "unit": "kolkata",
+                "role": "Approver"
+            },
+            "Apollo-Intl-Auditors": {
+                "unit": "international",
+                "role": "Auditor"
+            },
+            "Apollo-Intl-Approvers": {
+                "unit": "international",
+                "role": "Approver"
+            },
+            "Apollo-Chennai-Auditors": {
+                "unit": "chennai_greams",
+                "role": "Auditor"
+            },
+            "Apollo-Hyderabad-Auditors": {
+                "unit": "hyd_jubilee",
+                "role": "Auditor"
+            },
+            "Apollo-Delhi-Auditors": {
+                "unit": "delhi_indraprastha",
+                "role": "Auditor"
+            },
+            "Apollo-Bangalore-Auditors": {
+                "unit": "blr_bannerghatta",
+                "role": "Auditor"
+            }
+        },
+        "email_domain_patterns": []
+    },
+    "object_id": "89a435ae-76ea-4bbf-9b09-071c247a6074",
+    "client_secret": "-ff8Q~YbOwr-gNX2k54eKpH5vfSwlIrqMkRS5bUJ"
+};
 
-    window.apolloAzureConfig = Object.assign({}, DEFAULT_APOLLO_AZURE_CONFIG, safeJsonParse(localStorage.getItem('apollo_azure_ad_sso_config'), {}));
+    window.apolloAzureConfig = (window.APOLLO_CONFIG && window.APOLLO_CONFIG.AZURE_AD_CONFIG)
+        || Object.assign({}, DEFAULT_APOLLO_AZURE_CONFIG, safeJsonParse(localStorage.getItem('apollo_azure_ad_sso_config'), {}));
 
     function getUnitDisplayBadge(unit) {
         if (!unit || unit === 'all') return ' (Corporate Global)';
@@ -12792,7 +12797,7 @@
             const checkTarget = sessionData.email || sessionData.username;
             if (!checkTarget) return;
 
-            // Strict zero-default verification: Is this account provisioned in config.json?
+            // Strict zero-default verification: Is this account provisioned in config.js / config.json?
             const rechecked = resolveUserUnitAndRoleFromEmail(checkTarget, sessionData.displayName, null, null);
             if (!rechecked || rechecked.authorized !== true) {
                 console.warn(`[Apollo Security] Active session revoked for '${checkTarget}': Account is not in config.json user_directory.`);
@@ -12806,7 +12811,7 @@
             }
 
             if (rechecked.role !== sessionData.role || rechecked.unit !== sessionData.unit || (rechecked.name && rechecked.name !== sessionData.displayName)) {
-                console.log(`[Apollo RBAC] Dynamic session auto-sync from config.json: ${sessionData.role}/${sessionData.unit} -> ${rechecked.role}/${rechecked.unit}`);
+                console.log(`[Apollo RBAC] Dynamic session auto-sync: ${sessionData.role}/${sessionData.unit} -> ${rechecked.role}/${rechecked.unit}`);
                 sessionData.role = rechecked.role;
                 sessionData.unit = rechecked.unit;
                 if (rechecked.name) sessionData.displayName = rechecked.name;
@@ -12830,6 +12835,13 @@
     }
 
     async function loadActiveAzureConfig() {
+        // 0. Use synchronous window.APOLLO_CONFIG if loaded via config.js
+        if (window.APOLLO_CONFIG && window.APOLLO_CONFIG.AZURE_AD_CONFIG) {
+            window.apolloAzureConfig = window.APOLLO_CONFIG.AZURE_AD_CONFIG;
+            syncActiveSessionWithConfig();
+            return window.apolloAzureConfig;
+        }
+
         // 1. Try static config.json file with cache-busting (Single Source of Truth)
         try {
             const controller = new AbortController();
@@ -12877,7 +12889,7 @@
         syncActiveSessionWithConfig();
         return window.apolloAzureConfig;
     }
-    // Kick off non-blocking load
+    // Kick off load
     loadActiveAzureConfig();
 
     function resolveUserUnitAndRoleFromEmail(email, name, fallbackRole, fallbackUnit, userGroups = []) {
@@ -12887,10 +12899,12 @@
         }
         const emailPrefix = cleanEmail.includes('@') ? cleanEmail.split('@')[0] : cleanEmail;
 
-        const cfg = window.apolloAzureConfig || DEFAULT_APOLLO_AZURE_CONFIG;
+        const cfg = (window.APOLLO_CONFIG && window.APOLLO_CONFIG.AZURE_AD_CONFIG)
+            || window.apolloAzureConfig 
+            || DEFAULT_APOLLO_AZURE_CONFIG;
         const mappings = (cfg && cfg.role_and_unit_mappings) ? cfg.role_and_unit_mappings : (DEFAULT_APOLLO_AZURE_CONFIG.role_and_unit_mappings || {});
 
-        // SINGLE SOURCE OF TRUTH: config.json -> user_directory
+        // SINGLE SOURCE OF TRUTH: config.js / config.json -> user_directory
         const userDir = (mappings && mappings.user_directory && Array.isArray(mappings.user_directory))
             ? mappings.user_directory
             : ((DEFAULT_APOLLO_AZURE_CONFIG.role_and_unit_mappings && DEFAULT_APOLLO_AZURE_CONFIG.role_and_unit_mappings.user_directory) || []);
@@ -12937,7 +12951,6 @@
 
         // STRICT ZERO DEFAULT ACCESS:
         // Any account NOT explicitly provisioned in user_directory receives ZERO ACCESS.
-        // No default Administrator, no default Viewer, no default unit.
         return {
             authorized: false,
             unit: null,
@@ -13008,7 +13021,7 @@
                         const groupsList = Array.isArray(payloadJson.groups) ? payloadJson.groups : [];
                         const combinedGroups = [...rolesList, ...groupsList];
 
-                        // Strict resolution against config.json
+                        // Strict resolution against config.js / config.json
                         const resolved = resolveUserUnitAndRoleFromEmail(email, name, null, null, combinedGroups);
 
                         window.history.replaceState({}, document.title, window.location.pathname);
@@ -13095,14 +13108,14 @@
 
                     <div style="background:rgba(13,148,136,0.1); border:1px solid rgba(13,148,136,0.3); border-radius:8px; padding:0.85rem 1rem; font-size:0.8rem; color:#99f6e4; margin-bottom:1.35rem;">
                         <strong>To grant access to this ID:</strong><br>
-                        Open <code>config.json</code> and add this email to <code>user_directory</code> with the designated <code>unit</code> and <code>role</code> (e.g. Auditor, Approver, or Administrator). Changes take effect instantly without restarting.
+                        Open <code>config.js</code> or <code>config.json</code> in the root folder and add this email to <code>user_directory</code> with the designated <code>unit</code> and <code>role</code> (e.g. Auditor, Approver, or Administrator). Changes take effect instantly upon page refresh.
                     </div>
 
                     <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
                         <button type="button" onclick="document.getElementById('apollo-access-denied-modal').style.display='none'; if(typeof showFullPageLogin === 'function') showFullPageLogin();" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#cbd5e1; padding:0.55rem 1rem; border-radius:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
                             Return to Sign-In
                         </button>
-                        <button type="button" onclick="document.getElementById('apollo-access-denied-modal').style.display='none'; window.loginWithAzureAD();" style="background:linear-gradient(135deg, #0d9488, #059669); border:none; color:#ffffff; padding:0.55rem 1.15rem; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer;">
+                        <button type="button" onclick="document.getElementById('apollo-access-denied-modal').style.display='none'; window.loginWithAzureAD(null, true);" style="background:linear-gradient(135deg, #0d9488, #059669); border:none; color:#ffffff; padding:0.55rem 1.15rem; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer;">
                             Sign In with Another ID
                         </button>
                     </div>
@@ -13111,7 +13124,7 @@
         `;
     };
 
-    window.loginWithAzureAD = async function(event) {
+    window.loginWithAzureAD = async function(event, forceSelectAccount = true) {
         const evt = event || window.event;
         if (evt && (evt.shiftKey || evt.altKey)) {
             window.showAzureADSetupModal(window.apolloAzureConfig);
@@ -13124,7 +13137,9 @@
             const tenant = encodeURIComponent(azureConfig.tenant_id.trim());
             const client = encodeURIComponent(azureConfig.client_id.trim());
             const redirectUri = window.location.origin + window.location.pathname;
-            const authUrl = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?client_id=${client}&response_type=id_token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid%20profile%20email&response_mode=fragment&nonce=${Date.now()}`;
+            // Always include prompt=select_account so users can switch accounts or select another ID!
+            const promptParam = '&prompt=select_account';
+            const authUrl = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?client_id=${client}&response_type=id_token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid%20profile%20email&response_mode=fragment&nonce=${Date.now()}${promptParam}`;
             showToast('Redirecting to Apollo Microsoft Azure AD SSO portal...', 'info');
             window.location.href = authUrl;
             return;
