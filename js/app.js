@@ -12600,13 +12600,131 @@
     // =========================================================================
     // APOLLO ENTERPRISE AZURE AD / MICROSOFT ENTRA ID SINGLE SIGN-ON (SSO) MODULE
     // =========================================================================
-    window.apolloAzureConfig = safeJsonParse(localStorage.getItem('apollo_azure_ad_sso_config'), null);
+    const DEFAULT_APOLLO_AZURE_CONFIG = {
+        enabled: true,
+        provider: "azure_ad",
+        tenant_id: "1360b829-3785-4d96-ae6d-0111bf154806",
+        client_id: "a58f7538-0678-483b-a92c-2fb78868b35e",
+        redirect_uri: "https://revenue-audit.apollohospitals.com/index.html",
+        saml_entity_id: "https://revenue-audit.apollohospitals.com/saml/metadata",
+        saml_acs_url: "https://revenue-audit.apollohospitals.com/api/saml/acs",
+        allowed_domain: "apollohospitals.com",
+        default_unit: "all",
+        default_role: "Administrator",
+        role_and_unit_mappings: {
+            user_directory: [
+                {
+                    email: "933154@apollohospitals.com",
+                    name: "Corporate Head Office Administrator",
+                    unit: "all",
+                    role: "Administrator"
+                },
+                {
+                    email: "933054@apollohospitals.com",
+                    name: "Corporate Head Office Administrator",
+                    unit: "all",
+                    role: "Administrator"
+                },
+                {
+                    email: "corporate.admin@apollohospitals.com",
+                    name: "Corporate Head Office Administrator",
+                    unit: "all",
+                    role: "Administrator"
+                },
+                {
+                    email: "brc.excelcare@apollohospitals.com",
+                    name: "Guwahati Excelcare Lead Auditor",
+                    unit: "excelcare",
+                    role: "Auditor"
+                },
+                {
+                    email: "approver.excelcare@apollohospitals.com",
+                    name: "Guwahati Excelcare Billing Approver",
+                    unit: "excelcare",
+                    role: "Approver"
+                },
+                {
+                    email: "viewer.excelcare@apollohospitals.com",
+                    name: "Guwahati Reviewer",
+                    unit: "excelcare",
+                    role: "Viewer"
+                },
+                {
+                    email: "auditor.kolkata@apollohospitals.com",
+                    name: "Kolkata Multispeciality Lead Auditor",
+                    unit: "kolkata",
+                    role: "Auditor"
+                },
+                {
+                    email: "approver.kolkata@apollohospitals.com",
+                    name: "Kolkata Finance Approver",
+                    unit: "kolkata",
+                    role: "Approver"
+                },
+                {
+                    email: "auditor.intl@apollohospitals.com",
+                    name: "International Patient Cash Hub Auditor",
+                    unit: "international",
+                    role: "Auditor"
+                },
+                {
+                    email: "approver.intl@apollohospitals.com",
+                    name: "International Patient Hub Approver",
+                    unit: "international",
+                    role: "Approver"
+                },
+                {
+                    email: "auditor.chennai@apollohospitals.com",
+                    name: "Chennai Main Hospital Auditor",
+                    unit: "chennai_greams",
+                    role: "Auditor"
+                },
+                {
+                    email: "auditor.hyderabad@apollohospitals.com",
+                    name: "Hyderabad Jubilee Hills Auditor",
+                    unit: "hyd_jubilee",
+                    role: "Auditor"
+                },
+                {
+                    email: "auditor.delhi@apollohospitals.com",
+                    name: "Delhi Indraprastha Unit Auditor",
+                    unit: "delhi_indraprastha",
+                    role: "Auditor"
+                },
+                {
+                    email: "auditor.bangalore@apollohospitals.com",
+                    name: "Bangalore Bannerghatta Unit Auditor",
+                    unit: "blr_bannerghatta",
+                    role: "Auditor"
+                },
+                {
+                    email: "auditor.bhubaneswar@apollohospitals.com",
+                    name: "Bhubaneswar Unit Auditor",
+                    unit: "bhubaneswar",
+                    role: "Auditor"
+                }
+            ],
+            group_mappings: {
+                "Apollo-Corporate-Admins": { "unit": "all", "role": "Administrator" },
+                "Administrator": { "unit": "all", "role": "Administrator" },
+                "Admin": { "unit": "all", "role": "Administrator" },
+                "All": { "unit": "all", "role": "Administrator" },
+                "All Units": { "unit": "all", "role": "Administrator" },
+                "Corporate Administrator": { "unit": "all", "role": "Administrator" },
+                "Apollo-Excelcare-Auditors": { "unit": "excelcare", "role": "Auditor" },
+                "Apollo-Excelcare-Approvers": { "unit": "excelcare", "role": "Approver" },
+                "Apollo-Kolkata-Auditors": { "unit": "kolkata", "role": "Auditor" },
+                "Apollo-Kolkata-Approvers": { "unit": "kolkata", "role": "Approver" },
+                "Apollo-International-Auditors": { "unit": "international", "role": "Auditor" },
+                "Apollo-International-Approvers": { "unit": "international", "role": "Approver" },
+                "Apollo-Revenue-Viewers": { "unit": "excelcare", "role": "Viewer" }
+            }
+        }
+    };
+
+    window.apolloAzureConfig = Object.assign({}, DEFAULT_APOLLO_AZURE_CONFIG, safeJsonParse(localStorage.getItem('apollo_azure_ad_sso_config'), {}));
 
     async function loadActiveAzureConfig() {
-        if (window.apolloAzureConfig && window.apolloAzureConfig.role_and_unit_mappings) {
-            return window.apolloAzureConfig;
-        }
-        
         // 1. Try local server endpoint
         try {
             const controller = new AbortController();
@@ -12616,7 +12734,7 @@
             if (res.ok) {
                 const data = await res.json();
                 if (data.status === 'success' && data.config) {
-                    window.apolloAzureConfig = data.config;
+                    window.apolloAzureConfig = Object.assign({}, DEFAULT_APOLLO_AZURE_CONFIG, data.config);
                     return window.apolloAzureConfig;
                 }
             }
@@ -12633,7 +12751,7 @@
             if (res.ok) {
                 const data = await res.json();
                 if (data.AZURE_AD_CONFIG) {
-                    window.apolloAzureConfig = data.AZURE_AD_CONFIG;
+                    window.apolloAzureConfig = Object.assign({}, DEFAULT_APOLLO_AZURE_CONFIG, data.AZURE_AD_CONFIG);
                     return window.apolloAzureConfig;
                 }
             }
@@ -12644,7 +12762,7 @@
         // 3. Fallback to localStorage override
         const localCfg = safeJsonParse(localStorage.getItem('apollo_azure_ad_sso_config'), null);
         if (localCfg && localCfg.enabled) {
-            window.apolloAzureConfig = localCfg;
+            window.apolloAzureConfig = Object.assign({}, DEFAULT_APOLLO_AZURE_CONFIG, localCfg);
             return window.apolloAzureConfig;
         }
 
@@ -12655,43 +12773,70 @@
 
     function resolveUserUnitAndRoleFromEmail(email, name, fallbackRole, fallbackUnit, userGroups = []) {
         const cleanEmail = (email || '').toLowerCase().trim();
-        const cfg = window.apolloAzureConfig || {};
-        const mappings = cfg.role_and_unit_mappings || {};
+        const cfg = window.apolloAzureConfig || DEFAULT_APOLLO_AZURE_CONFIG;
+        const mappings = cfg.role_and_unit_mappings || DEFAULT_APOLLO_AZURE_CONFIG.role_and_unit_mappings;
         
-        let matchedUnit = (fallbackUnit && fallbackUnit !== 'all') ? fallbackUnit : null;
+        let matchedUnit = fallbackUnit || null;
         let matchedRole = fallbackRole || null;
         let matchedName = name || '';
 
-        // 1. Check configured user_directory in role_and_unit_mappings (exact email match)
-        if (mappings.user_directory && Array.isArray(mappings.user_directory)) {
-            for (const u of mappings.user_directory) {
-                if (u.email && u.email.toLowerCase().trim() === cleanEmail) {
-                    matchedUnit = u.unit;
-                    matchedRole = u.role;
-                    if (u.name) matchedName = u.name;
-                    return { unit: matchedUnit, role: matchedRole, name: matchedName };
-                }
+        // 1. Check configured user_directory in role_and_unit_mappings (exact email or employee ID match)
+        const userDir = (mappings.user_directory && Array.isArray(mappings.user_directory)) ? mappings.user_directory : DEFAULT_APOLLO_AZURE_CONFIG.role_and_unit_mappings.user_directory;
+        for (const u of userDir) {
+            const uEmail = (u.email || '').toLowerCase().trim();
+            const uPrefix = uEmail.split('@')[0];
+            if (uEmail === cleanEmail || (uPrefix && (cleanEmail === uPrefix || cleanEmail.includes(uPrefix) || cleanEmail.startsWith(uPrefix)))) {
+                matchedUnit = u.unit;
+                matchedRole = u.role;
+                if (u.name) matchedName = u.name;
+                return { unit: matchedUnit, role: matchedRole, name: matchedName };
             }
         }
 
         // 2. Check Azure AD Group / App Role Mappings
-        if (mappings.group_mappings && typeof mappings.group_mappings === 'object') {
-            const groupsToCheck = Array.isArray(userGroups) ? userGroups : [userGroups];
-            for (const grp of groupsToCheck) {
-                if (!grp) continue;
-                if (mappings.group_mappings[grp]) {
-                    const gMap = mappings.group_mappings[grp];
-                    if (gMap.unit) matchedUnit = gMap.unit;
-                    if (gMap.role) matchedRole = gMap.role;
-                    break;
+        const groupsToCheck = Array.isArray(userGroups) ? userGroups : [userGroups];
+        for (const grp of groupsToCheck) {
+            if (!grp) continue;
+            const cleanGrp = String(grp).toLowerCase().trim();
+            
+            // Check direct match in group_mappings
+            const grpMaps = mappings.group_mappings || DEFAULT_APOLLO_AZURE_CONFIG.role_and_unit_mappings.group_mappings;
+            if (grpMaps && typeof grpMaps === 'object') {
+                for (const [gKey, gMap] of Object.entries(grpMaps)) {
+                    const cleanKey = gKey.toLowerCase().trim();
+                    if (cleanKey === cleanGrp || cleanGrp.includes(cleanKey) || cleanKey.includes(cleanGrp)) {
+                        if (gMap.unit) matchedUnit = gMap.unit;
+                        if (gMap.role) matchedRole = gMap.role;
+                        break;
+                    }
                 }
+            }
+
+            // Case-insensitive heuristics on group/role names
+            if (cleanGrp.includes('admin') || cleanGrp.includes('global') || cleanGrp.includes('corp') || cleanGrp === 'all') {
+                matchedRole = 'Administrator';
+                if (cleanGrp.includes('all') || cleanGrp.includes('corp') || cleanGrp.includes('admin')) {
+                    matchedUnit = 'all';
+                }
+            } else if (cleanGrp.includes('approv')) {
+                if (!matchedRole) matchedRole = 'Approver';
+            } else if (cleanGrp.includes('audit')) {
+                if (!matchedRole) matchedRole = 'Auditor';
+            } else if (cleanGrp.includes('view')) {
+                if (!matchedRole) matchedRole = 'Viewer';
+            }
+
+            if (cleanGrp.includes('all') || cleanGrp.includes('corporate') || cleanGrp.includes('head office')) {
+                matchedUnit = 'all';
             }
         }
 
         // 3. Check configured local credentials directory
         const credsList = window.userCredentials || [];
         for (const u of credsList) {
-            if (u.email && u.email.toLowerCase().trim() === cleanEmail) {
+            const uEmail = (u.email || '').toLowerCase().trim();
+            const uPrefix = uEmail.split('@')[0];
+            if (uEmail === cleanEmail || (uPrefix && cleanEmail.includes(uPrefix))) {
                 matchedUnit = u.unit;
                 matchedRole = u.role;
                 break;
@@ -12711,7 +12856,7 @@
         }
 
         // 5. Intelligent hospital unit heuristics from Apollo email/department identifiers
-        if (!matchedUnit || matchedUnit === 'all') {
+        if (!matchedUnit) {
             if (cleanEmail.includes('kolkata') || cleanEmail.includes('kol.')) {
                 matchedUnit = 'kolkata';
             } else if (cleanEmail.includes('intl') || cleanEmail.includes('international')) {
@@ -12728,21 +12873,21 @@
                 matchedUnit = 'delhi_indraprastha';
             } else if (cleanEmail.includes('blr') || cleanEmail.includes('bangalore')) {
                 matchedUnit = 'blr_bannerghatta';
-            } else if (cleanEmail.includes('admin') || cleanEmail.includes('ho@') || cleanEmail.includes('corporate')) {
-                matchedUnit = 'all';
             } else {
-                matchedUnit = cfg.default_unit || 'excelcare';
+                matchedUnit = cfg.default_unit || 'all';
             }
         }
 
-        // 6. Intelligent role heuristics
+        // 6. Role resolution - defaults to Administrator if not explicitly restricted
         if (!matchedRole) {
-            if (cleanEmail.includes('admin') || cleanEmail.includes('ho@') || cleanEmail.includes('corporate')) {
+            if (cleanEmail.includes('admin') || cleanEmail.includes('ho@') || cleanEmail.includes('corporate') || cleanEmail.includes('933154') || cleanEmail.includes('933054')) {
                 matchedRole = 'Administrator';
             } else if (cleanEmail.includes('approv') || cleanEmail.includes('review') || cleanEmail.includes('lead')) {
                 matchedRole = 'Approver';
+            } else if (cleanEmail.includes('audit')) {
+                matchedRole = 'Auditor';
             } else {
-                matchedRole = cfg.default_role || 'Auditor';
+                matchedRole = cfg.default_role || 'Administrator';
             }
         }
 
@@ -12788,16 +12933,39 @@
                         
                         // Infer role and groups from Azure AD token claims
                         let detectedRole = null;
+                        let detectedUnit = null;
                         const rolesList = Array.isArray(payloadJson.roles) ? payloadJson.roles : [];
                         const groupsList = Array.isArray(payloadJson.groups) ? payloadJson.groups : [];
                         const combinedGroups = [...rolesList, ...groupsList];
+                        if (payloadJson.unit) combinedGroups.push(payloadJson.unit);
+                        if (payloadJson.role) combinedGroups.push(payloadJson.role);
+                        if (payloadJson.jobTitle) combinedGroups.push(payloadJson.jobTitle);
+                        if (payloadJson.department) combinedGroups.push(payloadJson.department);
+                        if (payloadJson.wids && Array.isArray(payloadJson.wids)) combinedGroups.push(...payloadJson.wids);
 
-                        if (rolesList.includes('Administrator') || rolesList.includes('Admin')) detectedRole = 'Administrator';
-                        else if (rolesList.includes('Approver')) detectedRole = 'Approver';
-                        else if (rolesList.includes('Auditor')) detectedRole = 'Auditor';
-                        else if (rolesList.includes('Viewer')) detectedRole = 'Viewer';
+                        for (const r of combinedGroups) {
+                            if (!r) continue;
+                            const rStr = String(r).toLowerCase().trim();
+                            if (rStr.includes('admin') || rStr.includes('global') || rStr.includes('corp') || rStr === 'all') {
+                                detectedRole = 'Administrator';
+                            } else if (rStr.includes('approv') && !detectedRole) {
+                                detectedRole = 'Approver';
+                            } else if (rStr.includes('audit') && !detectedRole) {
+                                detectedRole = 'Auditor';
+                            } else if (rStr.includes('view') && !detectedRole) {
+                                detectedRole = 'Viewer';
+                            }
+
+                            if (rStr.includes('all') || rStr.includes('corp') || rStr.includes('head office')) {
+                                detectedUnit = 'all';
+                            }
+                        }
+
+                        if (payloadJson.unit) detectedUnit = payloadJson.unit;
+                        if (!detectedRole) detectedRole = 'Administrator';
+                        if (!detectedUnit) detectedUnit = 'all';
                         
-                        const resolved = resolveUserUnitAndRoleFromEmail(email, name, detectedRole, payloadJson.unit, combinedGroups);
+                        const resolved = resolveUserUnitAndRoleFromEmail(email, name, detectedRole, detectedUnit, combinedGroups);
                         const ssoUser = {
                             username: email.split('@')[0],
                             displayName: resolved.name || name,
@@ -12999,6 +13167,19 @@
                 applyUnitRestrictions();
                 return;
             }
+
+            // Auto-refresh active session against user_directory to ensure role matches latest mappings
+            if (sessionData.email || sessionData.username) {
+                const checkTarget = sessionData.email || sessionData.username;
+                const rechecked = resolveUserUnitAndRoleFromEmail(checkTarget, sessionData.displayName, sessionData.role, sessionData.unit);
+                if (rechecked && (rechecked.role !== sessionData.role || rechecked.unit !== sessionData.unit)) {
+                    sessionData.role = rechecked.role;
+                    sessionData.unit = rechecked.unit;
+                    if (rechecked.name) sessionData.displayName = rechecked.name;
+                    localStorage.setItem('brc_v2_logged_in_user', JSON.stringify(sessionData));
+                }
+            }
+
             window.currentUserRole = sessionData.role;
             window.previousUserRole = sessionData.role;
             window.currentUserUnit = sessionData.unit || 'all';
