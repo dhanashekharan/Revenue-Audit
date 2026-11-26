@@ -6,8 +6,8 @@
     "provider": "azure_ad",
     "tenant_id": "1360b829-3785-4d96-ae6d-0111bf154806",
     "client_id": "a58f7538-0678-483b-a92c-2fb78868b35e",
-    "redirect_uri": "https://<YOUR-PORTAL-URL>/index.html",
-    "saml_entity_id": "https://<YOUR-PORTAL-URL>/saml/metadata",
+    "redirect_uri": "https://revenue-audit.apollohospitals.com/index.html",
+    "saml_entity_id": "https://revenue-audit.apollohospitals.com/saml/metadata",
     "saml_acs_url": "https://<YOUR-PORTAL-URL>/api/saml/acs",
     "allowed_domain": "apollohospitals.com",
     "default_unit": "excelcare",
@@ -15,7 +15,7 @@
     "role_and_unit_mappings": {
       "user_directory": [
         {
-          "email": "corporate.admin@apollohospitals.com",
+          "email": "933154@apollohospitals.com",
           "name": "Corporate Head Office Administrator",
           "unit": "all",
           "role": "Administrator"
