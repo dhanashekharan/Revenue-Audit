@@ -25,19 +25,17 @@ CONFIG_FILE = "config.json"
 config = {
     "STORAGE_MODE": "local",  # "local" or "sqlite"
     "SQLITE_DB_PATH": "revenue_audit.db",
-    "OTP_PROVIDER": "mock",   # "mock", "smtp", "sms"
-    "SMTP_CONFIG": {},
-    "SMS_CONFIG": {},
     "AZURE_AD_CONFIG": {
         "enabled": False,
-        "tenant_id": "",
-        "client_id": "",
+        "tenant_id": "1360b829-3785-4d96-ae6d-0111bf154806",
+        "client_id": "a58f7538-0678-483b-a92c-2fb78868b35e",
         "redirect_uri": "http://localhost:8500/index.html",
         "saml_entity_id": "https://apollo-revenue-audit.local/saml/metadata",
         "saml_acs_url": "http://localhost:8500/api/saml/acs",
         "default_unit": "excelcare",
         "default_role": "Auditor",
-        "allowed_domain": "apollohospitals.com"
+        "allowed_domain": "apollohospitals.com",
+        "role_and_unit_mappings": {}
     }
 }
 
@@ -128,23 +126,6 @@ def send_smtp_email(smtp_config, to_email, subject, body_text):
     server.login(username, password)
     server.sendmail(from_email, to_email, msg.as_string())
     server.quit()
-
-def send_twilio_sms(account_sid, auth_token, from_number, to_number, message_body):
-    url = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json"
-    data = urllib.parse.urlencode({
-        "From": from_number,
-        "To": to_number,
-        "Body": message_body
-    }).encode("utf-8")
-    
-    req = urllib.request.Request(url, data=data, method="POST")
-    auth_str = f"{account_sid}:{auth_token}"
-    auth_b64 = base64.b64encode(auth_str.encode("utf-8")).decode("utf-8")
-    req.add_header("Authorization", f"Basic {auth_b64}")
-    req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    
-    with urllib.request.urlopen(req) as response:
-        return response.read().decode("utf-8")
 
 class DatabaseSyncHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -253,6 +234,7 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
             azure_cfg = config.get("AZURE_AD_CONFIG", {})
             safe_cfg = {
                 "enabled": azure_cfg.get("enabled", False),
+                "provider": azure_cfg.get("provider", "azure_ad"),
                 "tenant_id": azure_cfg.get("tenant_id", ""),
                 "client_id": azure_cfg.get("client_id", ""),
                 "redirect_uri": azure_cfg.get("redirect_uri", ""),
@@ -260,7 +242,8 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
                 "saml_acs_url": azure_cfg.get("saml_acs_url", ""),
                 "default_unit": azure_cfg.get("default_unit", "excelcare"),
                 "default_role": azure_cfg.get("default_role", "Auditor"),
-                "allowed_domain": azure_cfg.get("allowed_domain", "apollohospitals.com")
+                "allowed_domain": azure_cfg.get("allowed_domain", "apollohospitals.com"),
+                "role_and_unit_mappings": azure_cfg.get("role_and_unit_mappings", {})
             }
             self.wfile.write(json.dumps({"status": "success", "config": safe_cfg}).encode('utf-8'))
 
@@ -301,61 +284,42 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
                 save_json_data('saved_settlements', 'saved_settlements.json', post_data.decode('utf-8'))
                 self.send_success_response("Settlements saved successfully")
                 
+            elif self.path == '/api/auth/save_azure_ad_config':
+                data = json.loads(post_data.decode('utf-8'))
+                if "AZURE_AD_CONFIG" not in config:
+                    config["AZURE_AD_CONFIG"] = {}
+                config["AZURE_AD_CONFIG"]["enabled"] = True
+                if "tenant_id" in data and data["tenant_id"]:
+                    config["AZURE_AD_CONFIG"]["tenant_id"] = data["tenant_id"].strip()
+                if "client_id" in data and data["client_id"]:
+                    config["AZURE_AD_CONFIG"]["client_id"] = data["client_id"].strip()
+                if "redirect_uri" in data and data["redirect_uri"]:
+                    config["AZURE_AD_CONFIG"]["redirect_uri"] = data["redirect_uri"].strip()
+                
+                try:
+                    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                        json.dump(config, f, indent=2)
+                    print(f"[AZURE AD] Persisted tenant & client configuration into {CONFIG_FILE}")
+                except Exception as ex:
+                    print(f"[AZURE AD ERROR] Could not write to {CONFIG_FILE}: {ex}")
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "success", "message": "Saved to config.json"}).encode('utf-8'))
+                
             elif self.path == '/api/send_otp':
                 data = json.loads(post_data.decode('utf-8'))
                 email = data.get("email")
                 otp = data.get("otp")
                 username = data.get("username", "User")
                 
-                subject = "Guwahati Revenue Assurance Portal - OTP Verification"
-                message_body = f"Your One-Time Password (OTP) for the BRC Guwahati Revenue Assurance Portal is: {otp}.\n\nThis code will expire in 5 minutes.\n\nAuthorized BRC Portal Access Only."
-                
-                success = False
-                error_msg = ""
-                provider = config.get("OTP_PROVIDER", "mock")
-                
-                if provider == "smtp" and config.get("SMTP_CONFIG"):
-                    try:
-                        send_smtp_email(config["SMTP_CONFIG"], email, subject, message_body)
-                        success = True
-                    except Exception as ex:
-                        error_msg = f"SMTP dispatch failed: {ex}"
-                        print(f"[OTP ERROR] {error_msg}")
-                elif provider == "sms" and config.get("SMS_CONFIG"):
-                    sms_conf = config["SMS_CONFIG"]
-                    phone_number = sms_conf.get("to_number_overrides", {}).get(username)
-                    if phone_number:
-                        try:
-                            send_twilio_sms(
-                                sms_conf["account_sid"],
-                                sms_conf["auth_token"],
-                                sms_conf["from_number"],
-                                phone_number,
-                                message_body
-                            )
-                            success = True
-                        except Exception as ex:
-                            error_msg = f"SMS dispatch failed: {ex}"
-                            print(f"[OTP ERROR] {error_msg}")
-                    else:
-                        error_msg = f"No phone number override mapped for username: {username}"
-                        print(f"[OTP ERROR] {error_msg}")
-                else:
-                    # Mock provider: log code to terminal so developers can see it
-                    print(f"[MOCK OTP SUCCESS] Sent OTP to {email}: {otp}")
-                    success = True
-                    
-                if success:
-                    self.send_response(200)
-                    self.send_header('Content-type', 'application/json')
-                    self.end_headers()
-                    resp = {"status": "success", "message": "OTP sent successfully"}
-                    if provider == "mock":
-                        resp["is_mock"] = True
-                        resp["otp"] = otp
-                    self.wfile.write(json.dumps(resp).encode('utf-8'))
-                else:
-                    self.send_error_response(400, error_msg or "OTP provider failed")
+                print(f"[AUTH CODE] Portal access code for {email} ({username}): {otp}")
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                resp = {"status": "success", "message": "Verification code logged", "is_mock": True, "otp": otp}
+                self.wfile.write(json.dumps(resp).encode('utf-8'))
 
             elif self.path == '/api/soc/parse':
                 data = json.loads(post_data.decode('utf-8'))
@@ -462,10 +426,13 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
             elif self.path in ['/api/saml/acs', '/api/auth/saml/callback']:
                 # Handle incoming SAML 2.0 assertion from Microsoft Azure AD / Entra ID
                 saml_response_str = ""
+                azure_cfg = config.get("AZURE_AD_CONFIG", {})
+                default_unit = azure_cfg.get("default_unit", "excelcare")
+                default_role = azure_cfg.get("default_role", "Auditor")
                 user_email = "apollo.auditor@apollohospitals.com"
                 user_name = "Apollo Enterprise Auditor"
-                user_role = "Auditor"
-                user_unit = "excelcare"
+                user_role = default_role
+                user_unit = default_unit
                 
                 try:
                     raw_str = post_data.decode('utf-8', errors='ignore')
@@ -493,6 +460,31 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
                             user_name = clean_name
                     except Exception as e:
                         print(f"Error decoding SAML XML: {e}")
+
+                # Dynamically resolve role and unit from role_and_unit_mappings in config
+                mappings = azure_cfg.get("role_and_unit_mappings", {})
+                user_dir = mappings.get("user_directory", [])
+                clean_email = user_email.lower().strip()
+                matched = False
+                for u in user_dir:
+                    if u.get("email", "").lower().strip() == clean_email:
+                        user_unit = u.get("unit", user_unit)
+                        user_role = u.get("role", user_role)
+                        if u.get("name"):
+                            user_name = u.get("name")
+                        matched = True
+                        break
+                
+                if not matched:
+                    # Check email domain patterns
+                    patterns = mappings.get("email_domain_patterns", {})
+                    for pattern, meta in patterns.items():
+                        keyword = pattern.strip("*").lower()
+                        if keyword and keyword in clean_email:
+                            user_unit = meta.get("unit", user_unit)
+                            user_role = meta.get("role", user_role)
+                            matched = True
+                            break
 
                 # Redirect browser back to main application with verified SSO token
                 self.send_response(302)

@@ -163,15 +163,20 @@
                                     Automatically opens your designated hospital unit and audit permissions with 1 click.
                                 </div>
                             </div>
-                            <button type="button" class="auth-btn-sso" onclick="window.loginWithAzureAD()" style="display: flex; align-items: center; justify-content: center; gap: 0.65rem; padding: 0.75rem 1.35rem; background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.12); white-space: nowrap;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
-                                <svg width="18" height="18" viewBox="0 0 23 23">
-                                    <path fill="#f35325" d="M1 1h10v10H1z"/>
-                                    <path fill="#81bc06" d="M12 1h10v10H12z"/>
-                                    <path fill="#05a6f0" d="M1 12h10v10H1z"/>
-                                    <path fill="#ffba08" d="M12 12h10v10H12z"/>
-                                </svg>
-                                <span>Sign in via Microsoft</span>
-                            </button>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
+                                <button type="button" class="auth-btn-sso" onclick="window.loginWithAzureAD(event)" style="display: flex; align-items: center; justify-content: center; gap: 0.65rem; padding: 0.75rem 1.35rem; background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.12); white-space: nowrap;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
+                                    <svg width="18" height="18" viewBox="0 0 23 23">
+                                        <path fill="#f35325" d="M1 1h10v10H1z"/>
+                                        <path fill="#81bc06" d="M12 1h10v10H12z"/>
+                                        <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+                                        <path fill="#ffba08" d="M12 12h10v10H12z"/>
+                                    </svg>
+                                    <span>Sign in via Microsoft</span>
+                                </button>
+                                <a href="javascript:void(0)" onclick="window.showAzureADSetupModal(window.apolloAzureConfig)" style="font-size: 0.72rem; color: #38bdf8; text-decoration: underline; cursor: pointer;">
+                                    ⚙ Configure / Change Azure SSO
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -289,7 +294,7 @@
                         <div id="login-credentials-group">
                             <!-- Enterprise Microsoft Azure AD / Entra ID Single Sign-On Option -->
                             <div class="auth-sso-section" style="margin-bottom: 1.1rem;">
-                                <button type="button" class="auth-btn-sso" id="btn-azure-ad-sso" onclick="window.loginWithAzureAD()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.65rem; padding: 0.72rem 1rem; background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.08);" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
+                                <button type="button" class="auth-btn-sso" id="btn-azure-ad-sso" onclick="window.loginWithAzureAD(event)" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.65rem; padding: 0.72rem 1rem; background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.08);" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
                                     <svg width="18" height="18" viewBox="0 0 23 23">
                                         <path fill="#f35325" d="M1 1h10v10H1z"/>
                                         <path fill="#81bc06" d="M12 1h10v10H12z"/>
@@ -298,6 +303,11 @@
                                     </svg>
                                     <span>Sign in via Microsoft</span>
                                 </button>
+                                <div style="text-align: right; margin-top: 0.35rem;">
+                                    <a href="javascript:void(0)" onclick="window.showAzureADSetupModal(window.apolloAzureConfig)" style="font-size: 0.72rem; color: #38bdf8; text-decoration: underline; cursor: pointer;">
+                                        ⚙ Configure / Change Azure SSO
+                                    </a>
+                                </div>
                                 <div class="auth-sso-divider" style="display: flex; align-items: center; text-align: center; margin: 1rem 0; color: #94a3b8; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em;">
                                     <span style="flex: 1; border-bottom: 1px solid rgba(255,255,255,0.12);"></span>
                                     <span style="padding: 0 0.75rem; text-transform: uppercase;">OR AUDITOR CREDENTIALS</span>
@@ -4093,7 +4103,7 @@
         { code: 'kanpur', name: 'Apollo Clinic & Information Centre - Civil Lines, Kanpur', shortName: 'Apollo Kanpur', hub: 'North Hub · Uttar Pradesh', zone: 'North Zone', icon: '🏥', color: '#c2410c', currency: 'INR', address: 'Mall Road, Civil Lines, Kanpur 208001', email: 'kanpur@apollohospitals.com', status: 'ACTIVE', isDefault: true },
         { code: 'amritsar', name: 'Apollo Clinic & Telemedicine - Ranjit Avenue, Amritsar', shortName: 'Apollo Amritsar', hub: 'North Hub · Punjab', zone: 'North Zone', icon: '🏥', color: '#9a3412', currency: 'INR', address: 'B-Block, Ranjit Avenue, Amritsar 143001', email: 'amritsar@apollohospitals.com', status: 'ACTIVE', isDefault: true },
         { code: 'chandigarh', name: 'Apollo Clinic - Sector 8C, Chandigarh', shortName: 'Apollo Chandigarh', hub: 'North Hub · Punjab & Haryana', zone: 'North Zone', icon: '🏥', color: '#d97706', currency: 'INR', address: 'SCO 180-182, Madhya Marg, Sector 8C, Chandigarh 160018', email: 'chandigarh@apollohospitals.com', status: 'ACTIVE', isDefault: true },
-        { code: 'jaipur', name: 'Apollo Clinic - Tonk Road, Jaipur', shortName: 'Apollo Jaipur', hub: 'North Hub · Rajasthan', zone: 'North Zone', icon: '🏥', color: '#b45309', currency: 'INR', address: 'Tonk Road, Near SMS Stadium, Jaipur 302015', email: 'jaipur@apollohospitals.com', status: 'ACTIVE', isDefault: true },
+        { code: 'jaipur', name: 'Apollo Clinic - Tonk Road, Jaipur', shortName: 'Apollo Jaipur', hub: 'North Hub · Rajasthan', zone: 'North Zone', icon: '🏥', color: '#b45309', currency: 'INR', address: 'Tonk Road, Jaipur 302015', email: 'jaipur@apollohospitals.com', status: 'ACTIVE', isDefault: true },
         { code: 'ludhiana', name: 'Apollo Clinic - The Mall Road, Ludhiana', shortName: 'Apollo Ludhiana', hub: 'North Hub · Punjab', zone: 'North Zone', icon: '🏥', color: '#f59e0b', currency: 'INR', address: 'The Mall Road, Civil Lines, Ludhiana 141001', email: 'ludhiana@apollohospitals.com', status: 'ACTIVE', isDefault: true },
         { code: 'varanasi', name: 'Apollo Information Centre - Sigra, Varanasi', shortName: 'Apollo Varanasi', hub: 'North Hub · Uttar Pradesh', zone: 'North Zone', icon: '🏥', color: '#eab308', currency: 'INR', address: 'Sigra Main Road, Varanasi 221010', email: 'varanasi@apollohospitals.com', status: 'ACTIVE', isDefault: true },
 

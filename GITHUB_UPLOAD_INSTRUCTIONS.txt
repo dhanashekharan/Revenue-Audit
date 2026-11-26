@@ -1,0 +1,59 @@
+================================================================================
+APOLLO GITHUB REPOSITORY UPDATE INSTRUCTIONS — RELEASE v2.5.2
+================================================================================
+
+Target: Apollo Internal GitHub Repository
+Goal: Update existing repository files to activate Microsoft Entra ID SSO & Multi-Unit RBAC
+
+--------------------------------------------------------------------------------
+METHOD 1: UPLOAD VIA GITHUB WEB INTERFACE (EASIEST — NO COMMAND LINE REQUIRED)
+--------------------------------------------------------------------------------
+
+Step 1: Open your Apollo GitHub repository in your web browser.
+
+Step 2: Upload Root Files
+   1. On the main repository page (root folder), click the 'Add file' button near
+      the top right and choose 'Upload files'.
+   2. From this release folder, drag and drop the following files into the browser:
+        - config.json
+        - config.example.json
+        - run_server.py
+        - index.html
+   3. In the 'Commit changes' box at the bottom, type:
+      'Update to v2.5.2: Microsoft Entra ID SSO and multi-unit governance'
+   4. Click 'Commit changes'.
+
+Step 3: Upload JavaScript File (js/app.js)
+   1. In the repository file list, click into the 'js' folder.
+   2. Click 'Add file' > 'Upload files'.
+   3. Drag and drop 'js/app.js' from this release folder.
+   4. In the commit box, type: 'Update js/app.js with Entra ID SSO module'.
+   5. Click 'Commit changes'.
+
+Step 4 (Optional): Upload Documentation Folder
+   1. Click into the 'docs' folder in GitHub (or create it via Add file).
+   2. Upload the files from the 'docs' folder:
+        - Apollo_Enterprise_Azure_AD_SSO_Deployment_Guide.docx
+        - APOLLO_AZURE_AD_SSO_SETUP_GUIDE.md
+        - APOLLO_AZURE_AD_CONFIG_TEMPLATE.json
+   3. Click 'Commit changes'.
+
+DONE! Your Apollo GitHub repository is now fully upgraded to v2.5.2.
+
+
+--------------------------------------------------------------------------------
+METHOD 2: UPDATE VIA GIT COMMAND LINE (FOR DEVELOPERS / IT ENGINEERS)
+--------------------------------------------------------------------------------
+
+If you have cloned the Apollo GitHub repository locally:
+
+1. Copy the contents of this folder into your local repository root, replacing
+   existing files.
+
+2. Run the following git commands:
+   git add config.json config.example.json run_server.py index.html js/app.js docs/
+   git commit -m "feat(auth): Upgrade to v2.5.2 - Microsoft Entra ID SSO and multi-unit RBAC"
+   git push origin main
+
+3. The Apollo repository is now updated with the latest v2.5.2 release.
+================================================================================
