@@ -1,35 +1,203 @@
 {
   "STORAGE_MODE": "local",
   "SQLITE_DB_PATH": "revenue_audit.db",
-  "OTP_PROVIDER": "mock",
   "AZURE_AD_CONFIG": {
-    "enabled": false,
+    "enabled": true,
     "provider": "azure_ad",
     "tenant_id": "1360b829-3785-4d96-ae6d-0111bf154806",
     "client_id": "a58f7538-0678-483b-a92c-2fb78868b35e",
-    "client_secret": "<OPTIONAL_CLIENT_SECRET>",
-    "redirect_uri": "https://<HOST>/index.html",
-    "saml_entity_id": "https://<HOST>/saml/metadata",
-    "saml_acs_url": "https://<HOST>/api/saml/acs",
-    "idp_metadata_url": "https://login.microsoftonline.com/<TENANT_ID>/federationmetadata/2007-06/federationmetadata.xml",
+    "redirect_uri": "https://<YOUR-PORTAL-URL>/index.html",
+    "saml_entity_id": "https://<YOUR-PORTAL-URL>/saml/metadata",
+    "saml_acs_url": "https://<YOUR-PORTAL-URL>/api/saml/acs",
+    "allowed_domain": "apollohospitals.com",
     "default_unit": "excelcare",
     "default_role": "Auditor",
-    "allowed_domain": "apollohospitals.com"
-  },
-  "SMTP_CONFIG": {
-    "host": "smtp.office365.com",
-    "port": 587,
-    "username": "billing-otp@hospital.com",
-    "password": "your-password-here",
-    "from_email": "billing-otp@hospital.com"
-  },
-  "SMS_CONFIG": {
-    "provider": "twilio",
-    "account_sid": "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    "auth_token": "your_auth_token_here",
-    "from_number": "+1234567890",
-    "to_number_overrides": {
-      "admin": "+919876543210"
-    }
+    "role_and_unit_mappings": {
+      "user_directory": [
+        {
+          "email": "corporate.admin@apollohospitals.com",
+          "name": "Corporate Head Office Administrator",
+          "unit": "all",
+          "role": "Administrator"
+        },
+        {
+          "email": "brc.excelcare@apollohospitals.com",
+          "name": "Guwahati Excelcare Lead Auditor",
+          "unit": "excelcare",
+          "role": "Auditor"
+        },
+        {
+          "email": "approver.excelcare@apollohospitals.com",
+          "name": "Guwahati Excelcare Billing Approver",
+          "unit": "excelcare",
+          "role": "Approver"
+        },
+        {
+          "email": "viewer.excelcare@apollohospitals.com",
+          "name": "Guwahati Reviewer",
+          "unit": "excelcare",
+          "role": "Viewer"
+        },
+        {
+          "email": "auditor.kolkata@apollohospitals.com",
+          "name": "Kolkata Multispeciality Lead Auditor",
+          "unit": "kolkata",
+          "role": "Auditor"
+        },
+        {
+          "email": "approver.kolkata@apollohospitals.com",
+          "name": "Kolkata Finance Approver",
+          "unit": "kolkata",
+          "role": "Approver"
+        },
+        {
+          "email": "auditor.intl@apollohospitals.com",
+          "name": "International Patient Cash Hub Auditor",
+          "unit": "international",
+          "role": "Auditor"
+        },
+        {
+          "email": "approver.intl@apollohospitals.com",
+          "name": "International Patient Hub Approver",
+          "unit": "international",
+          "role": "Approver"
+        },
+        {
+          "email": "auditor.chennai@apollohospitals.com",
+          "name": "Chennai Main Hospital Auditor",
+          "unit": "chennai_greams",
+          "role": "Auditor"
+        },
+        {
+          "email": "auditor.hyderabad@apollohospitals.com",
+          "name": "Hyderabad Jubilee Hills Auditor",
+          "unit": "hyd_jubilee",
+          "role": "Auditor"
+        },
+        {
+          "email": "auditor.delhi@apollohospitals.com",
+          "name": "Delhi Indraprastha Unit Auditor",
+          "unit": "delhi_indraprastha",
+          "role": "Auditor"
+        },
+        {
+          "email": "auditor.bangalore@apollohospitals.com",
+          "name": "Bangalore Bannerghatta Unit Auditor",
+          "unit": "blr_bannerghatta",
+          "role": "Auditor"
+        },
+        {
+          "email": "auditor.bhubaneswar@apollohospitals.com",
+          "name": "Bhubaneswar Unit Auditor",
+          "unit": "bhubaneswar",
+          "role": "Auditor"
+        }
+      ],
+      "group_mappings": {
+        "Apollo-Corporate-Admins": {
+          "unit": "all",
+          "role": "Administrator"
+        },
+        "Apollo-Excelcare-Auditors": {
+          "unit": "excelcare",
+          "role": "Auditor"
+        },
+        "Apollo-Excelcare-Approvers": {
+          "unit": "excelcare",
+          "role": "Approver"
+        },
+        "Apollo-Kolkata-Auditors": {
+          "unit": "kolkata",
+          "role": "Auditor"
+        },
+        "Apollo-Kolkata-Approvers": {
+          "unit": "kolkata",
+          "role": "Approver"
+        },
+        "Apollo-Intl-Auditors": {
+          "unit": "international",
+          "role": "Auditor"
+        },
+        "Apollo-Intl-Approvers": {
+          "unit": "international",
+          "role": "Approver"
+        },
+        "Apollo-Chennai-Auditors": {
+          "unit": "chennai_greams",
+          "role": "Auditor"
+        },
+        "Apollo-Hyderabad-Auditors": {
+          "unit": "hyd_jubilee",
+          "role": "Auditor"
+        },
+        "Apollo-Delhi-Auditors": {
+          "unit": "delhi_indraprastha",
+          "role": "Auditor"
+        },
+        "Apollo-Bangalore-Auditors": {
+          "unit": "blr_bannerghatta",
+          "role": "Auditor"
+        }
+      },
+      "email_domain_patterns": [
+        {
+          "pattern": "corporate",
+          "unit": "all",
+          "role": "Administrator"
+        },
+        {
+          "pattern": "admin",
+          "unit": "all",
+          "role": "Administrator"
+        },
+        {
+          "pattern": "excelcare",
+          "unit": "excelcare",
+          "role": "Auditor"
+        },
+        {
+          "pattern": "guwahati",
+          "unit": "excelcare",
+          "role": "Auditor"
+        },
+        {
+          "pattern": "kolkata",
+          "unit": "kolkata",
+          "role": "Auditor"
+        },
+        {
+          "pattern": "intl",
+          "unit": "international",
+          "role": "Auditor"
+        },
+        {
+          "pattern": "chennai",
+          "unit": "chennai_greams",
+          "role": "Auditor"
+        },
+        {
+          "pattern": "hyderabad",
+          "unit": "hyd_jubilee",
+          "role": "Auditor"
+        },
+        {
+          "pattern": "delhi",
+          "unit": "delhi_indraprastha",
+          "role": "Auditor"
+        },
+        {
+          "pattern": "bangalore",
+          "unit": "blr_bannerghatta",
+          "role": "Auditor"
+        },
+        {
+          "pattern": "bhubaneswar",
+          "unit": "bhubaneswar",
+          "role": "Auditor"
+        }
+      ]
+    },
+    "object_id": "89a435ae-76ea-4bbf-9b09-071c247a6074",
+    "client_secret": "-ff8Q~YbOwr-gNX2k54eKpH5vfSwlIrqMkRS5bUJ"
   }
 }
