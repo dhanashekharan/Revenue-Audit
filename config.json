@@ -10,6 +10,8 @@
     "saml_entity_id": "https://revenue-audit.apollohospitals.com/saml/metadata",
     "saml_acs_url": "https://revenue-audit.apollohospitals.com/api/saml/acs",
     "allowed_domain": "apollohospitals.com",
+    "default_unit": "none",
+    "default_role": "none",
     "role_and_unit_mappings": {
       "user_directory": [
         {
@@ -74,6 +76,12 @@
         },
         {
           "email": "era_raautomation@apollohospitals.com",
+          "name": "Chennai Main Hospital Auditor",
+          "unit": "chennai_greams",
+          "role": "Auditor"
+        },
+        {
+          "email": "auditor.chennai@apollohospitals.com",
           "name": "Chennai Main Hospital Auditor",
           "unit": "chennai_greams",
           "role": "Auditor"
@@ -149,63 +157,7 @@
           "role": "Auditor"
         }
       },
-      "email_domain_patterns": [
-        {
-          "pattern": "corporate",
-          "unit": "all",
-          "role": "Administrator"
-        },
-        {
-          "pattern": "admin",
-          "unit": "all",
-          "role": "Administrator"
-        },
-        {
-          "pattern": "excelcare",
-          "unit": "excelcare",
-          "role": "Auditor"
-        },
-        {
-          "pattern": "guwahati",
-          "unit": "excelcare",
-          "role": "Auditor"
-        },
-        {
-          "pattern": "kolkata",
-          "unit": "kolkata",
-          "role": "Auditor"
-        },
-        {
-          "pattern": "intl",
-          "unit": "international",
-          "role": "Auditor"
-        },
-        {
-          "pattern": "chennai",
-          "unit": "chennai_greams",
-          "role": "Auditor"
-        },
-        {
-          "pattern": "hyderabad",
-          "unit": "hyd_jubilee",
-          "role": "Auditor"
-        },
-        {
-          "pattern": "delhi",
-          "unit": "delhi_indraprastha",
-          "role": "Auditor"
-        },
-        {
-          "pattern": "bangalore",
-          "unit": "blr_bannerghatta",
-          "role": "Auditor"
-        },
-        {
-          "pattern": "bhubaneswar",
-          "unit": "bhubaneswar",
-          "role": "Auditor"
-        }
-      ]
+      "email_domain_patterns": []
     },
     "object_id": "89a435ae-76ea-4bbf-9b09-071c247a6074",
     "client_secret": "-ff8Q~YbOwr-gNX2k54eKpH5vfSwlIrqMkRS5bUJ"

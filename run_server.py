@@ -228,6 +228,14 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
             self.wfile.write(content.encode('utf-8'))
 
         elif self.path.startswith('/api/auth/azure_ad_config'):
+            # Dynamically reload config.json to reflect live admin updates
+            if os.path.exists(CONFIG_FILE):
+                try:
+                    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                        config.update(json.load(f))
+                except Exception as e:
+                    print(f"Error reloading {CONFIG_FILE}: {e}")
+
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
@@ -240,8 +248,8 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
                 "redirect_uri": azure_cfg.get("redirect_uri", ""),
                 "saml_entity_id": azure_cfg.get("saml_entity_id", ""),
                 "saml_acs_url": azure_cfg.get("saml_acs_url", ""),
-                "default_unit": azure_cfg.get("default_unit", "all"),
-                "default_role": azure_cfg.get("default_role", "Administrator"),
+                "default_unit": azure_cfg.get("default_unit", "none"),
+                "default_role": azure_cfg.get("default_role", "none"),
                 "allowed_domain": azure_cfg.get("allowed_domain", "apollohospitals.com"),
                 "role_and_unit_mappings": azure_cfg.get("role_and_unit_mappings", {})
             }
@@ -424,15 +432,19 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(resp).encode('utf-8'))
 
             elif self.path in ['/api/saml/acs', '/api/auth/saml/callback']:
+                # Dynamically reload config.json to reflect live admin updates
+                if os.path.exists(CONFIG_FILE):
+                    try:
+                        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                            config.update(json.load(f))
+                    except Exception as e:
+                        print(f"Error reloading {CONFIG_FILE}: {e}")
+
                 # Handle incoming SAML 2.0 assertion from Microsoft Azure AD / Entra ID
                 saml_response_str = ""
                 azure_cfg = config.get("AZURE_AD_CONFIG", {})
-                default_unit = azure_cfg.get("default_unit", "all")
-                default_role = azure_cfg.get("default_role", "Administrator")
-                user_email = "corporate.admin@apollohospitals.com"
-                user_name = "Apollo Corporate Administrator"
-                user_role = default_role
-                user_unit = default_unit
+                user_email = ""
+                user_name = ""
                 
                 try:
                     raw_str = post_data.decode('utf-8', errors='ignore')
@@ -442,10 +454,8 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
                             saml_response_str = parsed_qs['SAMLResponse'][0]
                     elif raw_str.strip().startswith('{'):
                         parsed_json = json.loads(raw_str)
-                        user_email = parsed_json.get('email', user_email)
-                        user_name = parsed_json.get('name', user_name)
-                        user_role = parsed_json.get('role', user_role)
-                        user_unit = parsed_json.get('unit', user_unit)
+                        user_email = parsed_json.get('email', '')
+                        user_name = parsed_json.get('name', '')
                 except Exception as ex:
                     print(f"SAML parse exception: {ex}")
 
@@ -461,57 +471,51 @@ class DatabaseSyncHandler(SimpleHTTPRequestHandler):
                     except Exception as e:
                         print(f"Error decoding SAML XML: {e}")
 
-                # Dynamically resolve role and unit from role_and_unit_mappings in config (STRICT EXACT MATCH)
+                # STRICT WHITELIST ZERO-DEFAULT ACCESS (config.json is the single source of truth)
                 mappings = azure_cfg.get("role_and_unit_mappings", {})
                 user_dir = mappings.get("user_directory", [])
                 clean_email = user_email.lower().strip()
                 email_prefix = clean_email.split('@')[0] if '@' in clean_email else clean_email
-                matched = False
+                
+                matched_user = None
                 for u in user_dir:
                     u_email = u.get("email", "").lower().strip()
                     u_prefix = u_email.split('@')[0] if '@' in u_email else u_email
 
                     # Strict exact match on email address or exact username prefix
                     if clean_email == u_email or (email_prefix and email_prefix == u_prefix):
-                        user_unit = u.get("unit", user_unit)
-                        user_role = u.get("role", user_role)
-                        if u.get("name"):
-                            user_name = u.get("name")
-                        matched = True
+                        matched_user = u
                         break
-                
-                if not matched:
-                    # Check email domain patterns (supports both list and dict formats)
-                    patterns = mappings.get("email_domain_patterns", [])
-                    if isinstance(patterns, list):
-                        for item in patterns:
-                            keyword = item.get("pattern", "").strip("*").lower()
-                            if keyword and (keyword in clean_email or keyword in email_prefix):
-                                user_unit = item.get("unit", user_unit)
-                                user_role = item.get("role", user_role)
-                                matched = True
-                                break
-                    elif isinstance(patterns, dict):
-                        for pattern, meta in patterns.items():
-                            keyword = pattern.strip("*").lower()
-                            if keyword and (keyword in clean_email or keyword in email_prefix):
-                                user_unit = meta.get("unit", user_unit)
-                                user_role = meta.get("role", user_role)
-                                matched = True
-                                break
 
-                # Redirect browser back to main application with verified SSO token
-                self.send_response(302)
-                qs = urllib.parse.urlencode({
-                    'sso': 'azure_ad',
-                    'email': user_email,
-                    'name': user_name,
-                    'role': user_role,
-                    'unit': user_unit,
-                    'status': 'authenticated'
-                })
-                self.send_header('Location', f'/index.html?{qs}')
-                self.end_headers()
+                if matched_user:
+                    user_unit = matched_user.get("unit", "excelcare")
+                    user_role = matched_user.get("role", "Auditor")
+                    if matched_user.get("name"):
+                        user_name = matched_user.get("name")
+
+                    # Redirect browser back to main application with verified SSO session
+                    self.send_response(302)
+                    qs = urllib.parse.urlencode({
+                        'sso': 'azure_ad',
+                        'email': user_email,
+                        'name': user_name,
+                        'role': user_role,
+                        'unit': user_unit,
+                        'status': 'authenticated'
+                    })
+                    self.send_header('Location', f'/index.html?{qs}')
+                    self.end_headers()
+                else:
+                    # STRICT ZERO DEFAULT ACCESS: Unmapped user is rejected
+                    print(f"[Apollo Security] SAML authentication rejected for '{user_email}': Not provisioned in config.json user_directory.")
+                    self.send_response(302)
+                    qs = urllib.parse.urlencode({
+                        'sso': 'azure_ad',
+                        'email': user_email,
+                        'status': 'unauthorized'
+                    })
+                    self.send_header('Location', f'/index.html?{qs}')
+                    self.end_headers()
 
             else:
                 self.send_error_response(404, "Endpoint not found")
