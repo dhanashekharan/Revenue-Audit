@@ -8,7 +8,7 @@
     "client_id": "a58f7538-0678-483b-a92c-2fb78868b35e",
     "redirect_uri": "https://revenue-audit.apollohospitals.com/index.html",
     "saml_entity_id": "https://revenue-audit.apollohospitals.com/saml/metadata",
-    "saml_acs_url": "https://<YOUR-PORTAL-URL>/api/saml/acs",
+    "saml_acs_url": "https://revenue-audit.apollohospitals.com/api/saml/acs",
     "allowed_domain": "apollohospitals.com",
     "default_unit": "excelcare",
     "default_role": "Auditor",
