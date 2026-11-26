@@ -12600,12 +12600,95 @@
     // =========================================================================
     // APOLLO ENTERPRISE AZURE AD / MICROSOFT ENTRA ID SINGLE SIGN-ON (SSO) MODULE
     // =========================================================================
-    function resolveUserUnitAndRoleFromEmail(email, name, fallbackRole, fallbackUnit) {
+    window.apolloAzureConfig = safeJsonParse(localStorage.getItem('apollo_azure_ad_sso_config'), null);
+
+    async function loadActiveAzureConfig() {
+        if (window.apolloAzureConfig && window.apolloAzureConfig.role_and_unit_mappings) {
+            return window.apolloAzureConfig;
+        }
+        
+        // 1. Try local server endpoint
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 600);
+            const res = await fetch('/api/auth/azure_ad_config', { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.status === 'success' && data.config) {
+                    window.apolloAzureConfig = data.config;
+                    return window.apolloAzureConfig;
+                }
+            }
+        } catch (e) {
+            // Server offline or static deployment
+        }
+
+        // 2. Try static config.json file
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 600);
+            const res = await fetch('config.json', { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.AZURE_AD_CONFIG) {
+                    window.apolloAzureConfig = data.AZURE_AD_CONFIG;
+                    return window.apolloAzureConfig;
+                }
+            }
+        } catch (e) {
+            // Static file not accessible
+        }
+
+        // 3. Fallback to localStorage override
+        const localCfg = safeJsonParse(localStorage.getItem('apollo_azure_ad_sso_config'), null);
+        if (localCfg && localCfg.enabled) {
+            window.apolloAzureConfig = localCfg;
+            return window.apolloAzureConfig;
+        }
+
+        return window.apolloAzureConfig;
+    }
+    // Kick off non-blocking load
+    loadActiveAzureConfig();
+
+    function resolveUserUnitAndRoleFromEmail(email, name, fallbackRole, fallbackUnit, userGroups = []) {
+        const cleanEmail = (email || '').toLowerCase().trim();
+        const cfg = window.apolloAzureConfig || {};
+        const mappings = cfg.role_and_unit_mappings || {};
+        
         let matchedUnit = (fallbackUnit && fallbackUnit !== 'all') ? fallbackUnit : null;
         let matchedRole = fallbackRole || null;
-        const cleanEmail = (email || '').toLowerCase().trim();
-        
-        // 1. Direct match from configured user accounts directory
+        let matchedName = name || '';
+
+        // 1. Check configured user_directory in role_and_unit_mappings (exact email match)
+        if (mappings.user_directory && Array.isArray(mappings.user_directory)) {
+            for (const u of mappings.user_directory) {
+                if (u.email && u.email.toLowerCase().trim() === cleanEmail) {
+                    matchedUnit = u.unit;
+                    matchedRole = u.role;
+                    if (u.name) matchedName = u.name;
+                    return { unit: matchedUnit, role: matchedRole, name: matchedName };
+                }
+            }
+        }
+
+        // 2. Check Azure AD Group / App Role Mappings
+        if (mappings.group_mappings && typeof mappings.group_mappings === 'object') {
+            const groupsToCheck = Array.isArray(userGroups) ? userGroups : [userGroups];
+            for (const grp of groupsToCheck) {
+                if (!grp) continue;
+                if (mappings.group_mappings[grp]) {
+                    const gMap = mappings.group_mappings[grp];
+                    if (gMap.unit) matchedUnit = gMap.unit;
+                    if (gMap.role) matchedRole = gMap.role;
+                    break;
+                }
+            }
+        }
+
+        // 3. Check configured local credentials directory
         const credsList = window.userCredentials || [];
         for (const u of credsList) {
             if (u.email && u.email.toLowerCase().trim() === cleanEmail) {
@@ -12614,8 +12697,20 @@
                 break;
             }
         }
-        
-        // 2. Intelligent directory mapping from Apollo email/department identifiers
+
+        // 4. Check email domain patterns from role_and_unit_mappings
+        if (mappings.email_domain_patterns && typeof mappings.email_domain_patterns === 'object') {
+            for (const [pattern, patMeta] of Object.entries(mappings.email_domain_patterns)) {
+                const keyword = pattern.replace(/\*/g, '').toLowerCase().trim();
+                if (keyword && cleanEmail.includes(keyword)) {
+                    if (!matchedUnit) matchedUnit = patMeta.unit;
+                    if (!matchedRole) matchedRole = patMeta.role;
+                    break;
+                }
+            }
+        }
+
+        // 5. Intelligent hospital unit heuristics from Apollo email/department identifiers
         if (!matchedUnit || matchedUnit === 'all') {
             if (cleanEmail.includes('kolkata') || cleanEmail.includes('kol.')) {
                 matchedUnit = 'kolkata';
@@ -12636,21 +12731,22 @@
             } else if (cleanEmail.includes('admin') || cleanEmail.includes('ho@') || cleanEmail.includes('corporate')) {
                 matchedUnit = 'all';
             } else {
-                matchedUnit = 'excelcare'; // Default designated hospital hub
+                matchedUnit = cfg.default_unit || 'excelcare';
             }
         }
-        
+
+        // 6. Intelligent role heuristics
         if (!matchedRole) {
             if (cleanEmail.includes('admin') || cleanEmail.includes('ho@') || cleanEmail.includes('corporate')) {
                 matchedRole = 'Administrator';
             } else if (cleanEmail.includes('approv') || cleanEmail.includes('review') || cleanEmail.includes('lead')) {
                 matchedRole = 'Approver';
             } else {
-                matchedRole = 'Auditor';
+                matchedRole = cfg.default_role || 'Auditor';
             }
         }
-        
-        return { unit: matchedUnit, role: matchedRole };
+
+        return { unit: matchedUnit, role: matchedRole, name: matchedName || name };
     }
 
     function checkSSORedirectParams() {
@@ -12666,7 +12762,7 @@
                 
                 const ssoUser = {
                     username: email.split('@')[0],
-                    displayName: name,
+                    displayName: resolved.name || name,
                     email: email,
                     role: resolved.role,
                     unit: resolved.unit,
@@ -12674,7 +12770,7 @@
                 };
                 localStorage.setItem('brc_v2_logged_in_user', JSON.stringify(ssoUser));
                 window.history.replaceState({}, document.title, window.location.pathname);
-                showToast(`Signed in via Microsoft as ${name} · ${resolved.unit.toUpperCase()} (${resolved.role})`, 'success');
+                showToast(`Signed in via Microsoft as ${ssoUser.displayName} · ${resolved.unit.toUpperCase()} (${resolved.role})`, 'success');
                 return true;
             }
             
@@ -12690,17 +12786,21 @@
                         const email = payloadJson.email || payloadJson.preferred_username || payloadJson.upn || 'apollo.user@apollohospitals.com';
                         const name = payloadJson.name || email.split('@')[0];
                         
-                        // Infer role from directory groups/roles if present
+                        // Infer role and groups from Azure AD token claims
                         let detectedRole = null;
-                        if (payloadJson.roles && Array.isArray(payloadJson.roles)) {
-                            if (payloadJson.roles.includes('Administrator') || payloadJson.roles.includes('Admin')) detectedRole = 'Administrator';
-                            else if (payloadJson.roles.includes('Approver')) detectedRole = 'Approver';
-                        }
+                        const rolesList = Array.isArray(payloadJson.roles) ? payloadJson.roles : [];
+                        const groupsList = Array.isArray(payloadJson.groups) ? payloadJson.groups : [];
+                        const combinedGroups = [...rolesList, ...groupsList];
+
+                        if (rolesList.includes('Administrator') || rolesList.includes('Admin')) detectedRole = 'Administrator';
+                        else if (rolesList.includes('Approver')) detectedRole = 'Approver';
+                        else if (rolesList.includes('Auditor')) detectedRole = 'Auditor';
+                        else if (rolesList.includes('Viewer')) detectedRole = 'Viewer';
                         
-                        const resolved = resolveUserUnitAndRoleFromEmail(email, name, detectedRole, payloadJson.unit);
+                        const resolved = resolveUserUnitAndRoleFromEmail(email, name, detectedRole, payloadJson.unit, combinedGroups);
                         const ssoUser = {
                             username: email.split('@')[0],
-                            displayName: name,
+                            displayName: resolved.name || name,
                             email: email,
                             role: resolved.role,
                             unit: resolved.unit,
@@ -12708,7 +12808,7 @@
                         };
                         localStorage.setItem('brc_v2_logged_in_user', JSON.stringify(ssoUser));
                         window.history.replaceState({}, document.title, window.location.pathname);
-                        showToast(`Signed in via Microsoft as ${name} · ${resolved.unit.toUpperCase()} (${resolved.role})`, 'success');
+                        showToast(`Signed in via Microsoft as ${ssoUser.displayName} · ${resolved.unit.toUpperCase()} (${resolved.role})`, 'success');
                         return true;
                     } catch (e) {
                         console.warn('Error decoding Azure AD id_token:', e);
@@ -12721,30 +12821,15 @@
         return false;
     }
 
-    window.loginWithAzureAD = async function() {
-        let azureConfig = null;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 400);
-        try {
-            const res = await fetch('/api/auth/azure_ad_config', { signal: controller.signal });
-            clearTimeout(timeoutId);
-            if (res.ok) {
-                const data = await res.json();
-                if (data.status === 'success') {
-                    azureConfig = data.config;
-                }
-            }
-        } catch (e) {
-            clearTimeout(timeoutId);
-            // Server offline or static deployment
+    window.loginWithAzureAD = async function(event) {
+        const evt = event || window.event;
+        if (evt && (evt.shiftKey || evt.altKey)) {
+            // Shortcut: Shift+Click or Alt+Click always opens the configuration modal
+            window.showAzureADSetupModal(window.apolloAzureConfig);
+            return;
         }
 
-        if (!azureConfig || !azureConfig.enabled) {
-            const localCfg = safeJsonParse(localStorage.getItem('apollo_azure_ad_sso_config'), null);
-            if (localCfg && localCfg.enabled) {
-                azureConfig = localCfg;
-            }
-        }
+        const azureConfig = await loadActiveAzureConfig();
 
         if (azureConfig && azureConfig.enabled && azureConfig.tenant_id && azureConfig.client_id && !azureConfig.client_id.includes('<')) {
             const tenant = encodeURIComponent(azureConfig.tenant_id.trim());
@@ -12819,7 +12904,10 @@
                             </div>
                         </div>
 
-                        <div style="display:flex; justify-content:flex-end;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                            <button type="button" onclick="window.clearAzureADConfig()" style="background:#dc2626; color:#ffffff; border:none; padding:0.55rem 1.1rem; border-radius:6px; font-size:0.82rem; font-weight:700; cursor:pointer;" title="Delete and reset saved Azure Tenant ID and Client ID">
+                                🗑 Delete / Reset Saved IDs
+                            </button>
                             <button type="button" onclick="window.saveLocalAzureADConfig()" style="background:#0d9488; color:#ffffff; border:none; padding:0.55rem 1.1rem; border-radius:6px; font-size:0.82rem; font-weight:700; cursor:pointer;">
                                 Save Azure AD Settings
                             </button>
@@ -12837,7 +12925,30 @@
         modal.style.display = 'flex';
     };
 
-    window.saveLocalAzureADConfig = function() {
+    window.clearAzureADConfig = async function() {
+        if (!confirm("Are you sure you want to delete and reset the saved Azure Tenant ID and Client ID?")) {
+            return;
+        }
+        localStorage.removeItem('apollo_azure_ad_sso_config');
+        window.apolloAzureConfig = null;
+
+        const tenantInput = document.getElementById('sso-tenant-input');
+        const clientInput = document.getElementById('sso-client-input');
+        if (tenantInput) tenantInput.value = '';
+        if (clientInput) clientInput.value = '';
+
+        try {
+            await fetch('/api/auth/save_azure_ad_config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tenant_id: "", client_id: "" })
+            });
+        } catch (e) {}
+
+        showToast('Azure AD SSO configuration deleted and reset successfully!', 'info');
+    };
+
+    window.saveLocalAzureADConfig = async function() {
         const tenant = document.getElementById('sso-tenant-input').value.trim();
         const client = document.getElementById('sso-client-input').value.trim();
         if (!tenant || !client) {
@@ -12850,8 +12961,21 @@
             client_id: client,
             redirect_uri: window.location.origin + window.location.pathname
         };
+        window.apolloAzureConfig = Object.assign(window.apolloAzureConfig || {}, cfg);
         localStorage.setItem('apollo_azure_ad_sso_config', JSON.stringify(cfg));
-        showToast('Azure AD SSO configuration saved successfully!', 'success');
+
+        // Persist to server config.json if server is running
+        try {
+            await fetch('/api/auth/save_azure_ad_config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cfg)
+            });
+        } catch (e) {
+            // Static mode fallback
+        }
+
+        showToast('Azure AD SSO configuration saved successfully to browser & config.json!', 'success');
         document.getElementById('apollo-azure-ad-modal').style.display = 'none';
     };
 
