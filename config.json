@@ -10,8 +10,8 @@
     "saml_entity_id": "https://revenue-audit.apollohospitals.com/saml/metadata",
     "saml_acs_url": "https://revenue-audit.apollohospitals.com/api/saml/acs",
     "allowed_domain": "apollohospitals.com",
-    "default_unit": "excelcare",
-    "default_role": "Viewer",
+    "default_unit": "all",
+    "default_role": "Administrator",
     "role_and_unit_mappings": {
       "user_directory": [
         {
@@ -20,8 +20,14 @@
           "unit": "all",
           "role": "Administrator"
         },
-         {
+        {
           "email": "933054@apollohospitals.com",
+          "name": "Corporate Head Office Administrator",
+          "unit": "all",
+          "role": "Administrator"
+        },
+        {
+          "email": "corporate.admin@apollohospitals.com",
           "name": "Corporate Head Office Administrator",
           "unit": "all",
           "role": "Administrator"
