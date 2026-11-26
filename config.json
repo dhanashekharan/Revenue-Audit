@@ -11,7 +11,7 @@
     "saml_acs_url": "https://revenue-audit.apollohospitals.com/api/saml/acs",
     "allowed_domain": "apollohospitals.com",
     "default_unit": "excelcare",
-    "default_role": "Auditor",
+    "default_role": "Viewer",
     "role_and_unit_mappings": {
       "user_directory": [
         {
